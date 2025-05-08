@@ -1,6 +1,6 @@
 module produceConsume:
 
-%Version 1 of producer consumer
+%Version 2 of producer consumer
 %Is it going to produce the correct count value?
 %declarations of data-handling functions in C
 procedure send()(integer);
@@ -8,39 +8,46 @@ procedure recv1(string)();
 function outCount(): integer;
 
 %interface declarations
-input svalue := 1: integer;
+input svalue : integer;
 output message: string;
 output count: integer;
 
-
+% local signals for thread synchronisation
+signal A, B in
 [
 %consumer thread
 loop
-	var data: string in	
-		await tick;
+	var data1: string in
+		await [A or tick];
+		emit B;
 		emit message("waiting another tick");
-		await tick;		
-		pause;
-		call recv1(data)();
-		%data := "My message";
-		emit message(data);
+		await [A or tick];
+		emit B;
+		pause;ss
+		call recv1(data1)();
+		emit message(data1);
+		emit B;
 	end var
 end loop
 ]
 ||
 [
-%thread emitting the current count value
+% Counter Output thread
 loop
-	pause;
+	await [A or B];
 	emit count(outCount());
 end loop
 ]
 ||
 [
-%producer thread
+% Producer thread
 loop
 	await svalue;
 	call send()(?svalue);
+	emit A;
 end loop
 ]
+
+end signal
+
 end module
