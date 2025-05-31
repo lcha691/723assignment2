@@ -1,0 +1,23 @@
+module noncausal:
+signal A,B,C in
+loop
+[
+	present C then emit A;
+	end present;
+	pause;
+]
+||sss
+[
+	await A;
+	emit B ;
+	pause ;
+]
+||
+[
+	await B;
+	emit C;
+	pause;
+]
+end loop
+end signal
+end module
