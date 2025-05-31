@@ -1,46 +1,28 @@
-module produceConsume:
-
-%Version 1 of producer consumer
-%Is it going to produce the correct count value?
-%declarations of data-handling functions in C
-procedure send()(integer);
-procedure recv1(string)();
-function outCount(): integer;
+%%%%%%%%%%%%%%%%%%%%%%%%%% Pedals controller
+module PedalFSM:
 
 %interface declarations
-input svalue := 1: integer;
-output message: string;
-output count: integer;
+input pAccel;
+output throttle: float;
+output A;
+output B: integer;
+output C: float;
+
+constant PedalsMin : float;
+function isAccel(float): boolean;
+function regulateThrottle(integer, float, float) : float;
+function number(integer) : integer;
+function floatCal(float) : float;
 
 
-[
-%consumer thread
+
 loop
-	var data: string in	
-		await tick;
-		emit message("waiting another tick");
-		await tick;		
-		pause;
-		call recv1(data)();
-		%data := "My message";
-		emit message(data);
-	end var
-end loop
-]
-||
-[
-%thread emitting the current count value
-loop
+	present pAccel then
+		emit A;
+		emit C(floatCal(PedalsMin));
+	end present;
+	
 	pause;
-	emit count(outCount());
 end loop
-]
-||
-[
-%producer thread
-loop
-	await svalue;
-	call send()(?svalue);
-end loop
-]
+
 end module
