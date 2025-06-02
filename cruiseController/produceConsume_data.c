@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include <stdbool.h>
 // #include "produceConsume.h"
 #define SIZE 5
 
@@ -44,8 +45,6 @@ int remov(void){
 		return -1;
 
 }
-
-#include <stdbool.h>
 
 /*
 DESCRIPTION: Saturate the throttle command to limit the acceleration.
@@ -103,4 +102,16 @@ int number(int num){
 
 float floatCal(float f){
 return f;
+}
+
+int isAccel(float Accel, float PedalsMin){
+	if(Accel >= PedalsMin){
+		return 1;
+	} else return 0;
+}
+
+int isBrake(float Brake, float PedalsMin){
+	if(Brake >= PedalsMin){
+		return 1;
+	} else return 0;
 }
