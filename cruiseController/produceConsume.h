@@ -8,11 +8,11 @@
 
 #include <stdbool.h>
 
-#define PedalsMin 3.00
-#define SpeedMin 30.00
-#define SpeedMax 150.00
-#define SpeedInc 10.00
-#define Zero 0.00
+// #define PedalsMin 3.00
+// #define SpeedMin 30.00
+// #define SpeedMax 150.00
+// #define SpeedInc 10.00
+// #define Zero 0.00
 
 
 

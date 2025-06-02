@@ -1,6 +1,74 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%% Speed controller
-module SpeedFSM:
+module cruiseController:
 
+
+input accel: float, speed: float, brake: float;
+input on, off, set, resume, quickDecel, quickAccel;
+
+output cruiseState: integer;
+% 1-CruiseOff
+% 2-CruiseOn
+% 3-CruiseStndby
+% 4-CruiseDisable
+
+output throttleCmd, cruiseSpeed: float;
+
+run cruiseFSM [
+	signal on/on;
+	signal off/off;
+	signal resume/resume;
+	signal speed/speed;
+	signal accel/accel;
+	signal brake/brake;
+
+	signal cruiseState/cruiseState]
+
+run SpeedFSM [
+	signal quickAccel/sQuickAccel;
+	signal quickDecel/sQuickDecel;
+	signal set/sSet;
+	signal cruiseState/cruiseState;
+	signal speed/sSpeed;
+
+	signal cruiseSpeed/sCruiseSpeed]
+
+end module
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+module cruiseFSM:
+
+input on, off, resume;
+input speed:float, accel:float, brake:float;
+
+output cruiseState:=1: integer;
+% 1-CruiseOff
+% 2-CruiseOn
+% 3-CruiseStndby
+% 4-CruiseDisable
+
+
+
+loop
+
+
+
+
+
+
+
+
+end loop;
+
+
+
+
+end module
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+module SpeedFSM:
 % interface declarations
 input sQuickAccel, sQuickDecel,sSet;
 input sCruiseState: integer;
@@ -18,18 +86,12 @@ constant SpeedMin= 30.00f : float;
 constant SpeedMax= 150.00f : float; 
 constant SpeedInc=10.00f : float;
 
-%#define PedalsMin 3.00
-%#define SpeedMin 30.00
-%#define SpeedMax 150.00
-%#define SpeedInc 10.00
-%#define Zero 0.00
 
-var incSpeed := ?sSpeed: float in %no semi colon needed
+% var incSpeed := ?sSpeed: float in %no semi colon needed
 var internalCruiseSpeed:= ?sSpeed: float in
 
 loop
 	pause;
-
 
 	% if on, check for disable
 	if (?sCruiseState = 1 or ?sCruiseState = 3) then
@@ -42,6 +104,7 @@ loop
 				% set the speed
 				internalCruiseSpeed:= ?sSpeed;
 			end present;
+
 			if(((pre(?sCruiseState) = 1) and (?sCruiseState = 2))) then
 
 				% set the speed
@@ -49,35 +112,33 @@ loop
 
 			end if;
 
-			% check if the speed is outside the limits, and set them to thresholds if so
-			if(?sSpeed > SpeedMax) then
-				internalCruiseSpeed:= SpeedMax;
-			end if;
-		
-			if(?sSpeed < SpeedMin) then
-				internalCruiseSpeed:= SpeedMin;
-			end if;
-
-
-			% calc the incremented speed
-			incSpeed := ?sSpeed + SpeedInc;
-
-			% incrementing speed if sQuickAccel is pressed AND the new speed will be less than the max
+			%incrementing speed if sQuickAccel is pressed AND the new speed will be less than the max
 			present sQuickAccel then
-				if ((incSpeed <= SpeedMax)) then
-					internalCruiseSpeed := incSpeed;
+				if ((internalCruiseSpeed <= SpeedMax)) then
+					internalCruiseSpeed := internalCruiseSpeed + SpeedInc;
 				end if;
 			end present;
 
 			% calc the decrememnted speed
-			incSpeed := ?sSpeed - SpeedInc;
+			%incSpeed := ?sSpeed - SpeedInc;
 
 			% decrement speed if sQuickDecel is pressed AND the new speed will be more than the min
 			present sQuickDecel then
-				if ((incSpeed >= SpeedMin)) then
-					internalCruiseSpeed := incSpeed;
+			if ((internalCruiseSpeed >= SpeedMin)) then
+					internalCruiseSpeed := internalCruiseSpeed - SpeedInc;
 				end if;
 			end present;
+
+			% check if the speed is outside the limits, and set them to thresholds if so
+			if(internalCruiseSpeed > SpeedMax) then
+				internalCruiseSpeed:= SpeedMax;
+			end if;
+		
+			if(internalCruiseSpeed < SpeedMin) then
+				internalCruiseSpeed:= SpeedMin;
+			end if;
+
+
 			emit sCruiseSpeed(internalCruiseSpeed);
 
 
@@ -86,5 +147,5 @@ loop
 	pause;
 end loop
 end var;
-end var;
+%end var;
 end module
