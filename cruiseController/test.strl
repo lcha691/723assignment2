@@ -1,5 +1,5 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%% Pedals controller
-module PedalFSM:
+%%%%%%%%%%%%%%%%%%%%%%%%%% Speed controller
+module SpeedFSM:
 
 %interface declarations
 input pCruiseOn;
@@ -34,6 +34,37 @@ loop
 		% something wrong with the way I have done regulate throttle idk what it is tho
 		% emit throttle(regulateThrottle(1, 5.0, 10.0));
 	end present;
+	
+	pause;
+end loop
+
+end module
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% Pedals controller
+% just tells us if we are accelerating/braking
+% we are allowed to assume that brake and accel will not be pressed at the same time
+module PedalFSM:
+
+%interface declarations
+input pAccel: float;
+input pBrake: float;
+output AccelOn;
+output BrakeOn;
+
+constant PedalsMin : float;
+
+% to connect a boolean in esterel to c, make it an int in C. In C use integer but we make it boolean here%
+function isAccel(float, float): boolean; 
+function isBrake(float, float): boolean;
+
+loop
+	if isAccel(?pAccel, PedalsMin) then
+		emit AccelOn;
+	end if;
+
+	if isBrake(?pBrake, PedalsMin) then
+		emit BrakeOn;
+	end if;
 	
 	pause;
 end loop
