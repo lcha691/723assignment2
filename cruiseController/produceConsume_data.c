@@ -52,19 +52,19 @@ PARAMETERS: throttleIn - throttle input
             saturate - true if saturated, false otherwise
 RETURNS: throttle output (ThrottleCmd)
 */
-float saturateThrottle(float throttleIn, bool* saturate)
+float saturateThrottle(float throttleIn, int* saturate)
 {
 	static const float THROTTLESATMAX = 45.0;
 	if (throttleIn > THROTTLESATMAX) {
-		*saturate = true;
+		*saturate = 1;
 		return THROTTLESATMAX;
 	}
 	else if (throttleIn < 0) {
-		*saturate = true;
+		*saturate = 1;
 		return 0;
 	}
 	else {
-		*saturate = false;
+		*saturate = 0;
 		return throttleIn;
 	}
 }
@@ -76,16 +76,16 @@ PARAMETERS: isGoingOn - true if the cruise control has just gone into the ON sta
             saturate - true if saturated, false otherwise
 RETURNS: throttle output (ThrottleCmd)
 */
-float regulateThrottle(bool isGoingOn, float cruiseSpeed, float vehicleSpeed)
+float regulateThrottle(int isGoingOn, float cruiseSpeed, float vehicleSpeed)
 {
 	static const float KP = 8.113;
 	static const float KI = 0.5;
-	static bool saturate = true;
+	static bool saturate = 1;
 	static float iterm = 0;
 	
 	if (isGoingOn) {
 		iterm = 0;	// reset the integral action
-		saturate = true;	
+		saturate = 1;	
 	}
 	float error = cruiseSpeed - vehicleSpeed;
 	float proportionalAction = error * KP;
@@ -111,6 +111,18 @@ int isAccel(float Accel, float PedalsMin){
 }
 
 int isBrake(float Brake, float PedalsMin){
+	if(Brake >= PedalsMin){
+		return 1;
+	} else return 0;
+}
+
+float incSpeed(float Brake, float PedalsMin){
+	if(Brake >= PedalsMin){
+		return 1;
+	} else return 0;
+}
+
+float decSpeed(float Brake, float PedalsMin){
 	if(Brake >= PedalsMin){
 		return 1;
 	} else return 0;
