@@ -1,116 +1,119 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%% Speed controller
-module SpeedFSM:
+%%//%%%%%%%%%%%%%%%%%%%%%%%% Main module
+module cruiseController:
 
-%interface declarations
-input sQuickAccel, sQuickDecel,sSet;
-input sCruisetState: float;
- 
-output pCruiseSpeed: string; % may need to use an int instead
+
+input accel: float, speed: float, brake: float;
+input on, off, set, resume, quickDecel, quickAccel;
+
+output cruiseState: integer;
 % 1-CruiseOff
 % 2-CruiseOn
-% 3 CruiseDisable
-% 4 CruiseStndby
+% 3-CruiseStndby
+% 4-CruiseDisable
 
+output throttleCmd, cruiseSpeed: float;
 
-constant PedalsMin : float;
-function regulateThrottle(integer, float, float) : float;
+run cruiseFSM [
+	signal on/on;
+	signal off/off;
+	signal resume/resume;
+	signal speed/speed;
+	signal accel/accel;
+	signal brake/brake;
 
-% in c boolean is an integer but we make it boolean here?%
-function isAccel(float, float): boolean; 
-function isBrake(float, float): integer;
-function floatCal(float): float;
+	signal cruiseState/cruiseState]
+||
+run SpeedFSM [
+	%signal quickAccel/sQuickAccel;
+	%signal quickDecel/sQuickDecel;
+	%signal set/sSet;
+	%signal cruiseState/cruiseState;
+	%signal speed/sSpeed;
 
-loop
-	present pCruiseOn then
-		
-		if isAccel(?pAccel, PedalsMin) then
-			emit pCruiseSpeed(?pAccel);
-		end if;
-		
-		
-		%emit A;
-		%emit C(floatCal(PedalsMin));
+	%signal cruiseSpeed/sCruiseSpeed]
 
-		%emit pCruiseSpeed(saturateThrottle(40.00));
-
-		% something wrong with the way I have done regulate throttle idk what it is tho
-		% emit throttle(regulateThrottle(1, 5.0, 10.0));
-	end present;
-	
-	pause;
-end loop
 
 end module
 
-%%%%%%%%%%%%%%%%%%%%%%%%%% Speed controller
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 module SpeedFSM:
+% interface declarations
+input sQuickAccel, sQuickDecel,sSet;
+input sCruiseState: integer;
+input sSpeed: float;
+ 
+% outputs
+output sCruiseSpeed: float; % may need to use an int instead
+% 1-CruiseOff
+% 2-CruiseOn
+% 3-CruiseStndby
+% 4-CruiseDisable
 
-%interface declarations
-input pCruiseOn;
-input pAccel: float;
-output throttle: float;
-output A;
-output B: integer;
-output C: float;
-output pCruiseSpeed: float;
+% business logic
+constant SpeedMin= 30.00f : float;
+constant SpeedMax= 150.00f : float; 
+constant SpeedInc=10.00f : float;
 
-constant PedalsMin : float;
-function regulateThrottle(integer, float, float) : float;
 
-% in c boolean is an integer but we make it boolean here?%
-function isAccel(float, float): boolean; 
-function isBrake(float, float): integer;
-function floatCal(float): float;
+% var incSpeed := ?sSpeed: float in %no semi colon needed
+var internalCruiseSpeed:= ?sSpeed: float in
 
 loop
-	present pCruiseOn then
+	pause;
+
+	% if on, check for disable
+	if (?sCruiseState = 1 or ?sCruiseState = 3) then
+
+		% if not disable, then do something
+		if not (?sCruiseState = 4)  then
+
+			% if this is the first time On is pressed or if set is pressed
+			present sSet then
+				% set the speed
+				internalCruiseSpeed:= ?sSpeed;
+			end present;
+
+			if(((pre(?sCruiseState) = 1) and (?sCruiseState = 2))) then
+
+				% set the speed
+				internalCruiseSpeed:= ?sSpeed;
+
+			end if;
+
+			%incrementing speed if sQuickAccel is pressed AND the new speed will be less than the max
+			present sQuickAccel then
+				if ((internalCruiseSpeed <= SpeedMax)) then
+					internalCruiseSpeed := internalCruiseSpeed + SpeedInc;
+				end if;
+			end present;
+
+			% calc the decrememnted speed
+			%incSpeed := ?sSpeed - SpeedInc;
+
+			% decrement speed if sQuickDecel is pressed AND the new speed will be more than the min
+			present sQuickDecel then
+			if ((internalCruiseSpeed >= SpeedMin)) then
+					internalCruiseSpeed := internalCruiseSpeed - SpeedInc;
+				end if;
+			end present;
+
+			% check if the speed is outside the limits, and set them to thresholds if so
+			if(internalCruiseSpeed > SpeedMax) then
+				internalCruiseSpeed:= SpeedMax;
+			end if;
 		
-		if isAccel(?pAccel, PedalsMin) then
-			emit pCruiseSpeed(?pAccel);
+			if(internalCruiseSpeed < SpeedMin) then
+				internalCruiseSpeed:= SpeedMin;
+			end if;
+
+
+			emit sCruiseSpeed(internalCruiseSpeed);
+
+
 		end if;
-		
-		
-		%emit A;
-		%emit C(floatCal(PedalsMin));
-
-		%emit pCruiseSpeed(saturateThrottle(40.00));
-
-		% something wrong with the way I have done regulate throttle idk what it is tho
-		% emit throttle(regulateThrottle(1, 5.0, 10.0));
-	end present;
-	
+	end if;
 	pause;
 end loop
-
-end module
-
-%%%%%%%%%%%%%%%%%%%%%%%%%% Pedals controller NEEDS TO BE DEVELOPED INTO THROTTLE CONTROL BUT PID WONT WORK!!!
-% just tells us if we are accelerating/braking
-% we are allowed to assume that brake and accel will not be pressed at the same time
-module PedalFSM:
-
-%interface declarations
-input pAccel: float;
-input pBrake: float;
-output AccelOn;
-output BrakeOn;
-
-constant PedalsMin : float;
-
-% to connect a boolean in esterel to c, make it an int in C. In C use integer but we make it boolean here%
-function isAccel(float, float): boolean; 
-function isBrake(float, float): boolean;
-
-loop
-	if isAccel(?pAccel, PedalsMin) then
-		emit AccelOn;
-	end if;
-
-	if isBrake(?pBrake, PedalsMin) then
-		emit BrakeOn;
-	end if;
-	
-	pause;
-end loop
-
+end var;
+%end var;
 end module
