@@ -23,6 +23,16 @@ run cruiseFSM [
 
 	signal cruiseState/cruiseState]
 
+||
+run SpeedFSM [
+	signal quickAccel/sQuickAccel;
+	signal quickDecel/sQuickDecel;
+	signal set/sSet;
+	signal cruiseState/sCruiseState;
+	signal speed/sSpeed;
+
+	signal cruiseSpeed/sCruiseSpeed]
+
 end module
 
 
@@ -123,4 +133,87 @@ loop
 
 end loop;
 end var;
+end module
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+module SpeedFSM:
+% interface declarations
+input sQuickAccel, sQuickDecel,sSet;
+input sCruiseState: integer;
+input sSpeed: float;
+ 
+% outputs
+output sCruiseSpeed: float; % may need to use an int instead
+% 1-CruiseOff
+% 2-CruiseOn
+% 3-CruiseStndby
+% 4-CruiseDisable
+
+% business logic
+constant SpeedMin= 30.00f : float;
+constant SpeedMax= 150.00f : float; 
+constant SpeedInc=10.00f : float;
+
+
+% var incSpeed := ?sSpeed: float in %no semi colon needed
+var internalCruiseSpeed:= ?sSpeed: float in
+
+loop
+	pause;
+
+	% if on, check for disable
+	if (?sCruiseState = 1 or ?sCruiseState = 3) then
+
+		% if not disable, then do something
+		if not (?sCruiseState = 4)  then
+
+			% if this is the first time On is pressed or if set is pressed
+			present sSet then
+				% set the speed
+				internalCruiseSpeed:= ?sSpeed;
+			end present;
+
+			if(((pre(?sCruiseState) = 1) and (?sCruiseState = 2))) then
+
+				% set the speed
+				internalCruiseSpeed:= ?sSpeed;
+
+			end if;
+
+			%incrementing speed if sQuickAccel is pressed AND the new speed will be less than the max
+			present sQuickAccel then
+				if ((internalCruiseSpeed <= SpeedMax)) then
+					internalCruiseSpeed := internalCruiseSpeed + SpeedInc;
+				end if;
+			end present;
+
+			% calc the decrememnted speed
+			%incSpeed := ?sSpeed - SpeedInc;
+
+			% decrement speed if sQuickDecel is pressed AND the new speed will be more than the min
+			present sQuickDecel then
+			if ((internalCruiseSpeed >= SpeedMin)) then
+					internalCruiseSpeed := internalCruiseSpeed - SpeedInc;
+				end if;
+			end present;
+
+			% check if the speed is outside the limits, and set them to thresholds if so
+			if(internalCruiseSpeed > SpeedMax) then
+				internalCruiseSpeed:= SpeedMax;
+			end if;
+		
+			if(internalCruiseSpeed < SpeedMin) then
+				internalCruiseSpeed:= SpeedMin;
+			end if;
+
+
+			emit sCruiseSpeed(internalCruiseSpeed);
+
+
+		end if;
+	end if;
+	pause;
+end loop
+end var;
+%end var;
 end module
