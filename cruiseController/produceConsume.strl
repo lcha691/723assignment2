@@ -1,32 +1,96 @@
-%%//%%%%%%%%%%%%%%%%%%%%%%%% throttleFSM
-module throttleFSM:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+module cruiseFSM:
 
+input on, off, resume;
+input speed:float, accel:float, brake:float;
 
-input accel: float, speed: float, cruiseSpeed:float;
-input cruiseState:integer;
+output cruiseState: integer; %// initial state is off
 % 1-CruiseOff
 % 2-CruiseOn
 % 3-CruiseStndby
 % 4-CruiseDisable
 
-output throttleCmd: float;
+%// business logic
+constant PedalsMin = 3.00f : float;
+constant SpeedMin = 30.00f : float;
+constant SpeedMax = 150.00f	: float; 
 
-function regulateThrottle(integer, float, float): float;
+var state:= 1: integer in 
 
 loop
-	await tick;
+	%%// CruiseOff %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	if(state = 1) then
+		%// check for the on signal
+		present on then
+			state:= 2; %// go to ON
+		end present;
 
-	if (?cruiseState = 1) then
 
-		%// if the cruise controller is off then just 
-		emit throttleCmd(?accel);
-
-	elsif (?cruiseState = 2) then
+	%%// CruiseOn %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	elsif(state = 2) then
 		
-		%// while cruise controller is on, we regulate the throttle
-		emit throttleCmd(regulateThrottle(pre(?cruiseState), ?cruiseSpeed, ?speed));
+		%// if off go to OFF
+		present off then 
+			state:= 1; 
+		end present;
+
+		%// if brakepressed go to STANDBY
+		if(?brake >= PedalsMin) then
+			state:=3; 
+
+		%// go to disable if accelpressed or speed outside limits
+		elsif (?accel >= PedalsMin) or ((?speed < SpeedMin) or (SpeedMax < ?speed)) then
+			state := 4;
+		end if;
+
+
+	%%// CruiseStndby %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	elsif(state = 3) then
+
+		%// if off go to OFF
+		present off then	
+			state:=1;
+		end present;
+
+		%// if resume pressed then
+		present resume then
+			%// if accel not pressed and speed within limits, ON
+			if (SpeedMin <= ?speed) and (?speed <= SpeedMax) and (?accel < PedalsMin) then
+				state:= 2; % go to ON
+			end if;
+		
+			%// if speed outside limits and accel pressed, DISABLE
+			if (SpeedMin < ?speed or SpeedMax > ?speed) and (?accel >= PedalsMin) then
+				state:= 4;
+			end if;
+		
+		end present;
+
+
+	%%// CruiseDisable %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	elsif(state = 4) then
+
+		%// iff off pressed, go to OFF
+		present off then
+			state:= 1;
+		end present;
+
+
+		%// if brakepressed, go to STANDBY
+		if (?brake >= PedalsMin) then %// honestly might not even need this because standby or disable are very similar
+			state:= 3; % go to STNDBY
+		end if;
+
+		%// if accel not pressed and speed in limits go to ON
+		if (?accel < PedalsMin) and (SpeedMin <= ?speed) and (?speed <= SpeedMax) then
+			state:= 2;
+		end if;
+
 	end if;
 
-end loop;
+	emit cruiseState(state);
+	await tick;
 
+end loop;
+end var;
 end module

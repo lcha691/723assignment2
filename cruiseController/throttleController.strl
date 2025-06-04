@@ -1,5 +1,5 @@
 %%//%%%%%%%%%%%%%%%%%%%%%%%% throttleFSM
-module throttleFSM:
+module throttleController:
 
 
 input accel: float, speed: float, cruiseSpeed:float;
@@ -17,7 +17,7 @@ loop
 	%// 
 	await tick;
 
-	if (?cruiseState = 1) then
+	if (?cruiseState = not 2) then
 
 		%// if the cruise controller is off then just 
 		emit throttleCmd(?accel);
