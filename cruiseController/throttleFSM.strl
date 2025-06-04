@@ -1,0 +1,31 @@
+%%//%%%%%%%%%%%%%%%%%%%%%%%% throttleFSM
+module throttleFSM:
+
+
+input accel: float, speed: float, cruiseSpeed:float;
+input cruiseState:integer;
+% 1-CruiseOff
+% 2-CruiseOn
+% 3-CruiseStndby
+% 4-CruiseDisable
+
+output throttleCmd: float;
+
+function regulateThrottle(integer, float, float): float;
+
+loop
+	%// 
+	await tick;
+
+	if (?cruiseState = 1) then
+
+		%// if the cruise controller is off then just 
+		emit throttleCmd(?accel);
+
+	elsif (?cruiseState = 2) then
+		
+		%// while cruise controller is on, we regulate the throttle
+		emit throttleCmd(regulateThrottle(pre(?cruiseState), ?cruiseSpeed, ?speed));
+	end if;
+end loop;
+end module

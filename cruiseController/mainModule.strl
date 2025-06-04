@@ -1,0 +1,36 @@
+%%//%%%%%%%%%%%%%%%%%%%%%%%% Main module
+module cruiseController:
+
+
+input accel: float, speed: float, brake: float;
+input on, off, set, resume, quickDecel, quickAccel;
+
+output cruiseState: integer;
+% 1-CruiseOff
+% 2-CruiseOn
+% 3-CruiseStndby
+% 4-CruiseDisable
+
+output throttleCmd, cruiseSpeed: float;
+
+run cruiseFSM [
+	signal on/on;
+	signal off/off;
+	signal resume/resume;
+	signal speed/speed;
+	signal accel/accel;
+	signal brake/brake;
+
+	signal cruiseState/cruiseState]
+
+||
+run SpeedFSM [
+	signal quickAccel/sQuickAccel;
+	signal quickDecel/sQuickDecel;
+	signal set/sSet;
+	signal cruiseState/sCruiseState;
+	signal speed/sSpeed;
+
+	signal cruiseSpeed/sCruiseSpeed]
+
+end module
