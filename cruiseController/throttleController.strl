@@ -1,7 +1,7 @@
 %%//%%%%%%%%%%%%%%%%%%%%%%%% throttleFSM
 module throttleController:
 
-
+% inputs
 input accel: float, speed: float, cruiseSpeed:float;
 input cruiseState:integer;
 % 1-CruiseOff
@@ -9,23 +9,25 @@ input cruiseState:integer;
 % 3-CruiseStndby
 % 4-CruiseDisable
 
+% outputs
 output throttleCmd: float;
 
+% business logic
 function regulateThrottle(integer, float, float): float;
 
 loop
-	%// 
-	await tick;
+	pause;
 
-	if (?cruiseState = not 2) then
-
+	if (?cruiseState <> 2) then
 		%// if the cruise controller is off then just 
-		emit throttleCmd(?accel);
+		emit throttleCmd(accel);
 
 	elsif (?cruiseState = 2) then
-		
 		%// while cruise controller is on, we regulate the throttle
-		emit throttleCmd(regulateThrottle(pre(?cruiseState), ?cruiseSpeed, ?speed));
+		%// param 1 = isGoingOn, bool to indicate the previous state was not 2 and now it is 2
+		%// param 2 = cruiseSpeed, the speed we want to maintain
+		%// param 3 = speed, the current speed of the vehicle
+        emit throttleCmd(regulateThrottle((pre(cruiseState) <> 2), cruiseSpeed, speed));
 	end if;
 end loop;
 end module

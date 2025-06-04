@@ -1,0 +1,78 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+module CruiseSpeedController:
+
+% inputs
+input sQuickAccel, sQuickDecel, sSet; %// buttons
+input sCruiseState: integer;
+input sSpeed: float;
+ 
+% outputs
+output sCruiseSpeed: float; %// may need to use an int instead
+% 1-CruiseOff
+% 2-CruiseOn
+% 3-CruiseStndby
+% 4-CruiseDisable
+
+% business logic
+constant SpeedMin= 30.00f  : float;
+constant SpeedMax= 150.00f : float; 
+constant SpeedInc= 10.00f  : float;
+
+var internalCruiseSpeed:= ?sSpeed: float in
+loop
+	pause;
+
+    %// check if cruise control activated for first time
+    if (pre(?sCruiseState) = 1 and ?sCruiseState = 2) then
+        %// set speed to current speed
+        %// if speed is too high, set to max
+        %// if speed is too low, set to min
+        if (?sSpeed > SpeedMax) then
+            internalCruiseSpeed := SpeedMax;
+        elsif (?sSpeed < SpeedMin) then
+            internalCruiseSpeed := SpeedMin;
+        else
+            internalCruiseSpeed := ?sSpeed;
+        end if;
+    end if;
+
+    %// if on, check for button presses
+    if (?sCruiseState = not 1) then
+        present sSet then
+            %// if too high, set to max
+            %// if too low, set to min
+            %// otherwise, set to current speed
+            if (?sSpeed > SpeedMax) then
+                internalCruiseSpeed := SpeedMax;
+            elsif (?sSpeed < SpeedMin) then
+                internalCruiseSpeed := SpeedMin;
+            else
+                internalCruiseSpeed := ?sSpeed;
+            end if;
+        end present;
+
+        present sQuickAccel then
+            %// if too high, set to max
+            %// otherwise, increment speed
+            if ((internalCruiseSpeed + SpeedInc) <= SpeedMax) then
+                internalCruiseSpeed := internalCruiseSpeed + SpeedInc;
+            else
+                internalCruiseSpeed := SpeedMax;
+            end if;
+        end present;
+
+        present sQuickDecel then
+            %// if too low, set to min
+            %// otherwise, decrement speed
+            if ((internalCruiseSpeed - SpeedInc) >= SpeedMin) then
+                internalCruiseSpeed := internalCruiseSpeed - SpeedInc;
+            else
+                internalCruiseSpeed := SpeedMin;
+            end if;
+        end present;
+    end if;
+
+    emit sCruiseSpeed(internalCruiseSpeed);
+end loop
+end var;
+end module

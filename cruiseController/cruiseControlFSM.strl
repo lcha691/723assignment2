@@ -1,0 +1,62 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+module cruiseControlFSM:
+
+input on, off, resume;
+input speed:float, accel:float, brake:float;
+
+output cruiseState: integer; %// initial state is off
+% 1-CruiseOff
+% 2-CruiseOn
+% 3-CruiseStndby
+% 4-CruiseDisable
+
+%// business logic
+constant PedalsMin = 3.00f : float;
+constant SpeedMin = 30.00f : float;
+constant SpeedMax = 150.00f	: float; 
+
+loop
+    %// state 1 - CruiseOff
+    abort
+        sustain cruiseState(1)
+    when on;
+
+    abort 
+        loop
+
+            %// state 2 - CruiseOn
+            abort
+                sustain cruiseState(2)
+            when(brake >= PedalsMin) or %// to Stndby
+                (accel >= PedalsMin) or %// to Disable \/
+                (speed < SpeedMin)   or 
+                (speed > SpeedMax);
+            %// -----------------------
+
+            %// state 3 - CruiseStndby
+            if (brake >= PedalsMin) then
+                abort
+                    sustain cruiseState(3)
+                when resume and
+                    (((accel < PedalsMin) and %// to On \/
+                    (speed >= SpeedMin)   and
+                    (speed <= SpeedMax)) or
+                    ((accel >= PedalsMin) or %// to Disable \/
+                    (speed < SpeedMin)    or 
+                    (speed > SpeedMax)));
+                %// -----------------------
+            end if;
+
+            %// state 4 - CruiseDisable
+            abort
+                sustain cruiseState(4)
+            when(brake >= PedalsMin)  or %// to Stndby
+                ((accel < PedalsMin) and %// to On \/
+                (speed >= SpeedMin)  and
+                (speed <= SpeedMax))
+            %// -----------------------
+
+        end loop;
+    when off;
+end loop;
+end module
