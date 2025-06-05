@@ -1,0 +1,204 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+module cruiseControl:
+
+% inputs
+input on, off, resume, quickAccel, quickDecel, set;
+input speed: float, accel: float, brake: float;
+
+% outputs
+output throttleCmd: float;
+output cruiseSpeed: float;
+output cruiseState: integer; %// initial state is off
+% 1-CruiseOff
+% 2-CruiseOn
+% 3-CruiseStndby
+% 4-CruiseDisable
+
+% business logic
+function regulateThrottle(integer, float, float): float;
+
+constant PedalsMin = 3.00f : float;
+constant SpeedMin = 30.00f : float;
+constant SpeedMax = 150.00f: float; 
+constant SpeedInc= 10.00f  : float;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%// MAIN FSM LOGIC
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    signal brakeOverLimit, brakeGood, accelOverLimit, accelGood, speedOutOfBounds, speedGood in
+
+%// signal setting
+    loop
+        if (?brake >= PedalsMin) then
+            emit brakeOverLimit;
+        else
+            emit brakeGood;
+        end if;
+        pause;
+    end loop
+||
+    loop
+        if (?accel >= PedalsMin) then
+            emit accelOverLimit;
+        else
+            emit accelGood;
+        end if;
+        pause;
+    end loop;
+||
+    loop
+        if (?speed < SpeedMin) or (?speed > SpeedMax) then
+            emit speedOutOfBounds;
+        else
+            emit speedGood;
+        end if;
+        pause;
+    end loop;
+
+||
+
+    %// FSM
+    loop
+        %// state 1 - CruiseOff
+        abort
+            sustain cruiseState(1)
+        when on;
+
+        abort 
+            loop
+
+                %// state 2 - CruiseOn
+                present [speedGood and accelGood and brakeGood] then
+		        abort
+		            sustain cruiseState(2)
+		        when 
+		        	case brakeOverLimit %// to STNDBY 
+		        	case [accelOverLimit or speedOutOfBounds] %// to DISABLE
+		        end abort;
+	        end present;
+                %// -----------------------
+
+                %// state 3 - CruiseStndby
+                present brakeOverLimit then
+		    abort
+		        sustain cruiseState(3)
+		    when
+		    	case [resume and accelGood and speedGood] %// to On
+		    	case [resume and (accelOverLimit or speedOutOfBounds)] %// to DISABLE
+		    end abort;
+                end present;
+                %// -----------------------
+
+                %// state 4 - CruiseDisable
+                present [speedOutOfBounds or accelOverLimit] then
+		        abort
+		            sustain cruiseState(4)
+		        when 
+		        	case brakeOverLimit %// to STNDBY
+		            	case [accelGood and speedGood] %// to ON
+			 end abort;
+		end present;
+                %// -----------------------
+
+            end loop;
+        when off;
+    end loop;
+    end signal;
+%-------------------------------------------------------
+
+||
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%// THROTTLE CONTROL LOGIC
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    loop
+    	
+        if (?cruiseState <> 2) then
+            %// if the cruise controller is off then just 
+    	    emit throttleCmd(?accel);
+
+        elsif (?cruiseState = 2) then
+            %// while cruise controller is on, we regulate the throttle
+            %// param 1 = isGoingOn, bool to indicate the previous state was not 2 and now it is 2
+            %// param 2 = cruiseSpeed, the speed we want to maintain
+            %// param 3 = speed, the current speed of the vehicle
+            
+            emit throttleCmd(regulateThrottle(pre(?cruiseState), ?cruiseSpeed, ?speed));
+        end if;
+        
+        pause;
+    end loop;
+%-------------------------------------------------------
+
+||
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%// CRUISE SPEED CONTROL LOGIC
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    var internalCruiseSpeed:= SpeedMin: float in
+    loop
+    
+        %// check if cruise control activated for first time
+        if (pre(?cruiseState) = 1 and ?cruiseState = 2) then
+            %// set speed to current speed
+            %// if speed is too high, set to max
+            %// if speed is too low, set to min
+            if (?speed > SpeedMax) then
+                internalCruiseSpeed := SpeedMax;
+            elsif (?speed < SpeedMin) then
+                internalCruiseSpeed := SpeedMin;
+            else
+                internalCruiseSpeed := ?speed;
+            end if;
+        end if;
+
+        %// if on, check for button presses
+        if (?cruiseState <> 1) then
+            present set then
+                %// if too high, set to max
+                %// if too low, set to min
+                %// otherwise, set to current speed
+                if (?speed > SpeedMax) then
+                    internalCruiseSpeed := SpeedMax;
+                elsif (?speed < SpeedMin) then
+                    internalCruiseSpeed := SpeedMin;
+                else
+                    internalCruiseSpeed := ?speed;
+                end if;
+            end present;
+
+            present quickAccel then
+                %// if too high, set to max
+                %// otherwise, increment speed
+                if ((internalCruiseSpeed + SpeedInc) <= SpeedMax) then
+                    internalCruiseSpeed := internalCruiseSpeed + SpeedInc;
+                else
+                    internalCruiseSpeed := SpeedMax;
+                end if;
+            end present;
+
+            present quickDecel then
+                %// if too low, set to min
+                %// otherwise, decrement speed
+                if ((internalCruiseSpeed - SpeedInc) >= SpeedMin) then
+                    internalCruiseSpeed := internalCruiseSpeed - SpeedInc;
+                else
+                    internalCruiseSpeed := SpeedMin;
+                end if;
+            end present;
+        end if;
+
+        emit cruiseSpeed(internalCruiseSpeed);
+        pause;
+    end loop
+    end var;
+%-------------------------------------------------------
+
+end module
+%--------------------------------------------------------------------------------------------------------------
