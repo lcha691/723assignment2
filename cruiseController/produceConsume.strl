@@ -173,6 +173,13 @@ loop
 	%// if on, check for disable
 	if (?sCruiseState = 2 or ?sCruiseState = 3) then
 
+		%// first time the cruise mode has been turned on, previous state was off and current state is on
+		if((pre(?sCruiseState) = 1) and (?sCruiseState = 2)) then
+
+			% set the speed
+			internalCruiseSpeed:= ?sSpeed;
+		end if;
+
 		% if not disable, then do something
 		if not (?sCruiseState = 4)  then
 
@@ -219,7 +226,6 @@ loop
 		end if;
 	end if;
 	emit sCruiseSpeed(internalCruiseSpeed);
-	pause;
 end loop
 end var;
 end module
