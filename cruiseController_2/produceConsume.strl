@@ -141,7 +141,7 @@ constant SpeedInc= 10.00f  : float;
 %// CRUISE SPEED CONTROL LOGIC
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    var internalCruiseSpeed:= SpeedMin: float in
+    var internalCruiseSpeed:= 0.0f: float in
     loop
     
         %// check if cruise control activated for first time
