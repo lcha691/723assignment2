@@ -196,9 +196,6 @@ loop
 				end if;
 			end present;
 
-			%//calc the decrememnted speed
-			%//incSpeed := ?sSpeed - SpeedInc;
-
 			%// decrement speed if sQuickDecel is pressed AND the new speed will be more than the min
 			present sQuickDecel then
 			if ((internalCruiseSpeed >= SpeedMin)) then
