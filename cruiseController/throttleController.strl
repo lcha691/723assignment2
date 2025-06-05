@@ -1,9 +1,12 @@
+%//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%//%%%%%%%%%%%%%%%%%%%%%%%% throttleFSM
 module throttleController:
 
 
-input accel: float, speed: float, cruiseSpeed:float;
-input cruiseState:integer;
+input accel: float, speed: float, tcruiseSpeed:float;
+input tcruiseState:integer;
 % 1-CruiseOff
 % 2-CruiseOn
 % 3-CruiseStndby
@@ -12,20 +15,22 @@ input cruiseState:integer;
 output throttleCmd: float;
 
 function regulateThrottle(integer, float, float): float;
-
+var throttleInternal := 0.0f: float in
 loop
 	%// 
 	await tick;
 
-	if (?cruiseState = 2) then
+	throttleInternal:= ?accel;
+
+	if (?tcruiseState = 2) then
 		%// while cruise controller is on, we regulate the throttle
 		%// param 1 = isGoingOn, bool to indicate the previous state was not 2 and now it is 2
 		%// param 2 = cruiseSpeed, the speed we want to maintain
 		%// param 3 = speed, the current speed of the vehicle
-		emit throttleCmd(regulateThrottle(pre(?cruiseState), ?cruiseSpeed, ?speed));
-	else
-		%// if the cruise controller is off then just 
-		emit throttleCmd(?accel);
+		throttleInternal:= regulateThrottle(pre(?tcruiseState), ?tcruiseSpeed, ?speed);
 	end if;
+		%// if the cruise controller is off then just 
+	emit throttleCmd(throttleInternal);
 end loop;
+end var;
 end module
