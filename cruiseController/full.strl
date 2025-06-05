@@ -32,11 +32,22 @@ run SpeedFSM [
 	signal speed/sSpeed;
 
 	signal cruiseSpeed/sCruiseSpeed]
+||
+run throttleController [
+	signal accel/accel;
+	signal speed/speed;
+	signal sCruiseSpeed/cruiseSpeed;
+	signal cruiseState/tcruiseState;
+	signal throttleCmd/throttleCmd;
+]
 
 end module
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 module cruiseFSM:
 
 input on, off, resume;
@@ -76,11 +87,9 @@ loop
 		if(?brake >= PedalsMin) then
 			state:=3; 
 
-		end if;
-
 		%// go to disable if accelpressed or speed outside limits
-		if(?accel >= PedalsMin) or (?speed < SpeedMin) or (SpeedMax < ?speed) then
-			state := 5;
+		elsif (?accel >= PedalsMin) or ((?speed < SpeedMin) or (SpeedMax < ?speed)) then
+			state := 4;
 		end if;
 
 
@@ -88,7 +97,7 @@ loop
 	elsif(state = 3) then
 
 		%// if off go to OFF
-		present off then
+		present off then	
 			state:=1;
 		end present;
 
@@ -135,7 +144,9 @@ end loop;
 end var;
 end module
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 module SpeedFSM:
 % interface declarations
 input sQuickAccel, sQuickDecel,sSet;
@@ -161,8 +172,8 @@ var internalCruiseSpeed:= ?sSpeed: float in
 loop
 	pause;
 
-	% if on, check for disable
-	if (?sCruiseState = 1 or ?sCruiseState = 3) then
+	%// if on, check for disable
+	if (?sCruiseState = 2 or ?sCruiseState = 3) then
 
 		% if not disable, then do something
 		if not (?sCruiseState = 4)  then
@@ -173,31 +184,31 @@ loop
 				internalCruiseSpeed:= ?sSpeed;
 			end present;
 
-			if(((pre(?sCruiseState) = 1) and (?sCruiseState = 2))) then
+			if((pre(?sCruiseState) = 1) and (?sCruiseState = 2)) then
 
 				% set the speed
 				internalCruiseSpeed:= ?sSpeed;
 
 			end if;
 
-			%incrementing speed if sQuickAccel is pressed AND the new speed will be less than the max
+			%//incrementing speed if sQuickAccel is pressed AND the new speed will be less than the max
 			present sQuickAccel then
 				if ((internalCruiseSpeed <= SpeedMax)) then
 					internalCruiseSpeed := internalCruiseSpeed + SpeedInc;
 				end if;
 			end present;
 
-			% calc the decrememnted speed
-			%incSpeed := ?sSpeed - SpeedInc;
+			%//calc the decrememnted speed
+			%//incSpeed := ?sSpeed - SpeedInc;
 
-			% decrement speed if sQuickDecel is pressed AND the new speed will be more than the min
+			%// decrement speed if sQuickDecel is pressed AND the new speed will be more than the min
 			present sQuickDecel then
 			if ((internalCruiseSpeed >= SpeedMin)) then
 					internalCruiseSpeed := internalCruiseSpeed - SpeedInc;
 				end if;
 			end present;
 
-			% check if the speed is outside the limits, and set them to thresholds if so
+			%// check if the speed is outside the limits, and set them to thresholds if so
 			if(internalCruiseSpeed > SpeedMax) then
 				internalCruiseSpeed:= SpeedMax;
 			end if;
@@ -216,4 +227,40 @@ loop
 end loop
 end var;
 %end var;
+end module
+
+
+%//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%//%%%%%%%%%%%%%%%%%%%%%%%% throttleFSM
+module throttleController:
+
+
+input accel: float, speed: float, cruiseSpeed:float;
+input tcruiseState:integer;
+% 1-CruiseOff
+% 2-CruiseOn
+% 3-CruiseStndby
+% 4-CruiseDisable
+
+output throttleCmd: float;
+
+function regulateThrottle(integer, float, float): float;
+
+loop
+	%// 
+	await tick;
+
+	if (?tcruiseState = 2) then
+		%// while cruise controller is on, we regulate the throttle
+		%// param 1 = isGoingOn, bool to indicate the previous state was not 2 and now it is 2
+		%// param 2 = cruiseSpeed, the speed we want to maintain
+		%// param 3 = speed, the current speed of the vehicle
+		emit throttleCmd(regulateThrottle(pre(?tcruiseState), ?cruiseSpeed, ?speed));
+	else
+		%// if the cruise controller is off then just 
+		emit throttleCmd(?accel);
+	end if;
+end loop;
 end module

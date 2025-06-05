@@ -38,11 +38,9 @@ loop
 		if(?brake >= PedalsMin) then
 			state:=3; 
 
-		end if;
-
 		%// go to disable if accelpressed or speed outside limits
-		if(?accel >= PedalsMin) or (?speed < SpeedMin) or (SpeedMax < ?speed) then
-			state := 5;
+		elsif (?accel >= PedalsMin) or ((?speed < SpeedMin) or (SpeedMax < ?speed)) then
+			state := 4;
 		end if;
 
 
@@ -50,7 +48,7 @@ loop
 	elsif(state = 3) then
 
 		%// if off go to OFF
-		present off then
+		present off then	
 			state:=1;
 		end present;
 
