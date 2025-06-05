@@ -80,16 +80,16 @@ float regulateThrottle(int isGoingOn, float cruiseSpeed, float vehicleSpeed)
 {
 	static const float KP = 8.113;
 	static const float KI = 0.5;
-	static bool saturate = 1;
+	static int saturate = 1;
 	static float iterm = 0;
 	
-	if (isGoingOn) {
+	if (isGoingOn == 1) {
 		iterm = 0;	// reset the integral action
 		saturate = 1;	
 	}
 	float error = cruiseSpeed - vehicleSpeed;
 	float proportionalAction = error * KP;
-	if (saturate)
+	if (saturate == 1)
 		error = 0;	// integral action is hold when command is saturated
 	iterm = iterm + error;
 	float integralAction = KI * iterm;

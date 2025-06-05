@@ -163,7 +163,7 @@ output sCruiseSpeed: float; % may need to use an int instead
 % business logic
 constant SpeedMin= 30.00f : float;
 constant SpeedMax= 150.00f : float; 
-constant SpeedInc= 10.00f : float;
+constant SpeedInc= 5.00f : float;
 
 var internalCruiseSpeed:= 0.0f: float in
 
