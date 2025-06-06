@@ -1,5 +1,5 @@
 %%//%%%%%%%%%%%%%%%%%%%%%%%% Main module
-module cruiseController:
+module CruiseController:
 
 
 input accel: float, speed: float, brake: float;
@@ -13,7 +13,7 @@ output cruiseState: integer;
 
 output throttleCmd: float, cruiseSpeed: float;
 
-run cruiseFSM [
+run MainFSM [
 	signal on/on;
 	signal off/off;
 	signal resume/resume;
@@ -24,7 +24,7 @@ run cruiseFSM [
 	signal cruiseState/cruiseState]
 
 ||
-run SpeedFSM [
+run CruiseSpeedControl [
 	signal quickAccel/sQuickAccel;
 	signal quickDecel/sQuickDecel;
 	signal set/sSet;
@@ -33,7 +33,7 @@ run SpeedFSM [
 
 	signal cruiseSpeed/sCruiseSpeed]
 ||
-run throttleController [
+run ThrottleControl [
 	signal accel/accel;
 	signal speed/speed;
 	signal cruiseSpeed/tcruiseSpeed;
@@ -48,7 +48,7 @@ end module
 %//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-module cruiseFSM:
+module MainFSM:
 
 input on, off, resume;
 input speed:float, accel:float, brake:float;
@@ -147,7 +147,7 @@ end module
 %//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-module SpeedFSM:
+module CruiseSpeedControl:
 % interface declarations
 input sQuickAccel, sQuickDecel,sSet;
 input sCruiseState: integer;
@@ -235,7 +235,7 @@ end module
 %//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%//%%%%%%%%%%%%%%%%%%%%%%%% throttleFSM
-module throttleController:
+module ThrottleControl:
 
 
 input accel: float, speed: float, tcruiseSpeed:float;

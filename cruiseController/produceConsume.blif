@@ -1,0 +1,384 @@
+#%signature: 1046511%
+.model cruiseController
+.inputs  accel \
+         speed \
+         brake \
+         on \
+         off \
+         set \
+         resume \
+         quickDecel \
+         quickAccel \
+         TEST_28_0_1_0_0_IN \
+         TEST_30_0_1_0_0_IN \
+         TEST_32_0_1_0_0_IN \
+         TEST_34_0_1_0_0_IN \
+         TEST_36_0_1_0_0_IN \
+         TEST_38_0_1_0_0_IN \
+         TEST_40_0_1_0_0_IN \
+         TEST_42_0_1_0_0_IN \
+         TEST_44_0_1_0_0_IN \
+         TEST_46_0_1_0_0_IN \
+         TEST_52_0_2_0_0_IN \
+         TEST_53_0_2_0_0_IN \
+         TEST_55_0_2_0_0_IN \
+         TEST_57_0_2_0_0_IN \
+         TEST_59_0_2_0_0_IN \
+         TEST_61_0_2_0_0_IN \
+         TEST_63_0_2_0_0_IN \
+         TEST_65_0_2_0_0_IN \
+         TEST_70_0_3_0_0_IN
+.outputs cruiseState \
+         throttleCmd \
+         cruiseSpeed \
+         TEST_28_0_1_0_0_OUT \
+         TEST_30_0_1_0_0_OUT \
+         TEST_32_0_1_0_0_OUT \
+         TEST_34_0_1_0_0_OUT \
+         TEST_36_0_1_0_0_OUT \
+         TEST_38_0_1_0_0_OUT \
+         TEST_40_0_1_0_0_OUT \
+         TEST_42_0_1_0_0_OUT \
+         TEST_44_0_1_0_0_OUT \
+         TEST_46_0_1_0_0_OUT \
+         TEST_52_0_2_0_0_OUT \
+         TEST_53_0_2_0_0_OUT \
+         TEST_55_0_2_0_0_OUT \
+         TEST_57_0_2_0_0_OUT \
+         TEST_59_0_2_0_0_OUT \
+         TEST_61_0_2_0_0_OUT \
+         TEST_63_0_2_0_0_OUT \
+         TEST_65_0_2_0_0_OUT \
+         TEST_70_0_3_0_0_OUT \
+         ACT_2_0_0_0_0 \
+         ACT_5_0_0_0_0 \
+         ACT_8_0_0_0_0 \
+         ACT_22_0_0_0_0 \
+         ACT_24_0_0_0_0 \
+         ACT_26_0_0_0_0 \
+         ACT_27_0_1_0_0 \
+         ACT_29_0_1_0_0 \
+         ACT_31_0_1_0_0 \
+         ACT_33_0_1_0_0 \
+         ACT_35_0_1_0_0 \
+         ACT_37_0_1_0_0 \
+         ACT_39_0_1_0_0 \
+         ACT_41_0_1_0_0 \
+         ACT_43_0_1_0_0 \
+         ACT_45_0_1_0_0 \
+         ACT_47_0_1_0_0 \
+         ACT_48_0_1_0_0 \
+         ACT_49_0_0_0_0 \
+         PRE_ACT9_0_0_0 \
+         ACT_51_0_2_0_0 \
+         ACT_54_0_2_0_0 \
+         ACT_56_0_2_0_0 \
+         ACT_58_0_2_0_0 \
+         ACT_60_0_2_0_0 \
+         ACT_62_0_2_0_0 \
+         ACT_64_0_2_0_0 \
+         ACT_66_0_2_0_0 \
+         ACT_67_0_2_0_0 \
+         ACT_68_0_3_0_0 \
+         ACT_69_0_3_0_0 \
+         ACT_71_0_3_0_0 \
+         ACT_72_0_3_0_0 \
+         ROOT_K0_0_0 \
+         ROOT_K1_0_0
+.names BOOT_REGISTER_0_0 accel AUX_ACT_2_0_0
+10 1
+.names AUX_ACT_2_0_0 ACT_2_0_0_0_0
+1 1
+.names BOOT_REGISTER_0_0 speed AUX_ACT_5_0_0
+10 1
+.names AUX_ACT_5_0_0 ACT_5_0_0_0_0
+1 1
+.names BOOT_REGISTER_0_0 brake AUX_ACT_8_0_0
+10 1
+.names AUX_ACT_8_0_0 ACT_8_0_0_0_0
+1 1
+.names BOOT_REGISTER_0_0 ACT_22_0_0_0_0
+1 1
+.names PAUSE_REG_45_1_0 BOOT_REGISTER_0_0 TO_PRESENT_46_1_0
+10 1
+.names BOOT_REGISTER_0_0 ACT_49_0_0_0_0
+1 1
+.names BOOT_REGISTER_0_0 ACT_27_0_1_0_0
+1 1
+.names TO_PRESENT_46_1_0 BOOT_REGISTER_0_0 GO_11_1_0
+00 0
+.names GO_11_1_0 TEST_28_0_1_0_0_OUT
+1 1
+.names TEST_28_0_1_0_0_OUT TEST_28_0_1_0_0_IN TEST_28_0_1_0
+11 1
+.names TEST_28_0_1_0 on THEN_12_1_0
+11 1
+.names THEN_12_1_0 ACT_29_0_1_0_0
+1 1
+.names TEST_28_0_1_0 on ELSE_12_1_0
+10 1
+.names GO_11_1_0 TEST_28_0_1_0 ELSE_11_1_0
+10 1
+.names ELSE_11_1_0 TEST_30_0_1_0_0_OUT
+1 1
+.names TEST_30_0_1_0_0_OUT TEST_30_0_1_0_0_IN TEST_30_0_1_0
+11 1
+.names TEST_30_0_1_0 off THEN_15_1_0
+11 1
+.names THEN_15_1_0 ACT_31_0_1_0_0
+1 1
+.names TEST_30_0_1_0 off ELSE_15_1_0
+10 1
+.names THEN_15_1_0 ELSE_15_1_0 GO_17_0_0
+00 0
+.names GO_17_0_0 TEST_32_0_1_0_0_OUT
+1 1
+.names TEST_32_0_1_0_0_OUT TEST_32_0_1_0_0_IN TEST_32_0_1_0
+11 1
+.names TEST_32_0_1_0 ACT_33_0_1_0_0
+1 1
+.names GO_17_0_0 TEST_32_0_1_0 ELSE_18_1_0
+10 1
+.names ELSE_18_1_0 TEST_34_0_1_0_0_OUT
+1 1
+.names TEST_34_0_1_0_0_OUT TEST_34_0_1_0_0_IN TEST_34_0_1_0
+11 1
+.names TEST_34_0_1_0 ACT_35_0_1_0_0
+1 1
+.names ELSE_18_1_0 TEST_34_0_1_0 ELSE_21_1_0
+10 1
+.names ELSE_11_1_0 TEST_30_0_1_0 ELSE_14_1_0
+10 1
+.names ELSE_14_1_0 TEST_36_0_1_0_0_OUT
+1 1
+.names TEST_36_0_1_0_0_OUT TEST_36_0_1_0_0_IN TEST_36_0_1_0
+11 1
+.names TEST_36_0_1_0 off THEN_24_1_0
+11 1
+.names THEN_24_1_0 ACT_37_0_1_0_0
+1 1
+.names TEST_36_0_1_0 off ELSE_24_1_0
+10 1
+.names THEN_24_1_0 ELSE_24_1_0 GO_26_1_0
+00 0
+.names GO_26_1_0 resume THEN_26_1_0
+11 1
+.names THEN_26_1_0 TEST_38_0_1_0_0_OUT
+1 1
+.names TEST_38_0_1_0_0_OUT TEST_38_0_1_0_0_IN TEST_38_0_1_0
+11 1
+.names TEST_38_0_1_0 ACT_39_0_1_0_0
+1 1
+.names THEN_26_1_0 TEST_38_0_1_0 ELSE_28_1_0
+10 1
+.names TEST_38_0_1_0 ELSE_28_1_0 GO_30_0_0
+00 0
+.names GO_30_0_0 TEST_40_0_1_0_0_OUT
+1 1
+.names TEST_40_0_1_0_0_OUT TEST_40_0_1_0_0_IN TEST_40_0_1_0
+11 1
+.names TEST_40_0_1_0 ACT_41_0_1_0_0
+1 1
+.names GO_30_0_0 TEST_40_0_1_0 ELSE_31_1_0
+10 1
+.names GO_26_1_0 resume ELSE_26_1_0
+10 1
+.names ELSE_14_1_0 TEST_36_0_1_0 ELSE_23_1_0
+10 1
+.names ELSE_23_1_0 TEST_42_0_1_0_0_OUT
+1 1
+.names TEST_42_0_1_0_0_OUT TEST_42_0_1_0_0_IN TEST_42_0_1_0
+11 1
+.names TEST_42_0_1_0 off THEN_34_1_0
+11 1
+.names THEN_34_1_0 ACT_43_0_1_0_0
+1 1
+.names TEST_42_0_1_0 off ELSE_34_1_0
+10 1
+.names THEN_34_1_0 ELSE_34_1_0 GO_36_0_0
+00 0
+.names GO_36_0_0 TEST_44_0_1_0_0_OUT
+1 1
+.names TEST_44_0_1_0_0_OUT TEST_44_0_1_0_0_IN TEST_44_0_1_0
+11 1
+.names TEST_44_0_1_0 ACT_45_0_1_0_0
+1 1
+.names GO_36_0_0 TEST_44_0_1_0 ELSE_37_1_0
+10 1
+.names TEST_44_0_1_0 ELSE_37_1_0 GO_39_0_0
+00 0
+.names GO_39_0_0 TEST_46_0_1_0_0_OUT
+1 1
+.names TEST_46_0_1_0_0_OUT TEST_46_0_1_0_0_IN TEST_46_0_1_0
+11 1
+.names TEST_46_0_1_0 ACT_47_0_1_0_0
+1 1
+.names GO_39_0_0 TEST_46_0_1_0 ELSE_40_1_0
+10 1
+.names ELSE_23_1_0 TEST_42_0_1_0 ELSE_33_1_0
+10 1
+.names THEN_12_1_0 ELSE_12_1_0 TEST_32_0_1_0 TEST_34_0_1_0 ELSE_21_1_0 TEST_40_0_1_0 ELSE_31_1_0 ELSE_26_1_0 TEST_46_0_1_0 ELSE_40_1_0 ELSE_33_1_0 GO_42_1_0
+00000000000 0
+.names GO_42_1_0 ACT_48_0_1_0_0
+1 1
+.names GO_42_1_0 cruiseState
+1 1
+.names BOOT_REGISTER_0_0 ACT_51_0_2_0_0
+1 1
+.names PAUSE_REG_49_2_0 BOOT_REGISTER_0_0 CONT_49_2_0
+10 1
+.names CONT_49_2_0 TEST_52_0_2_0_0_OUT
+1 1
+.names TEST_52_0_2_0_0_OUT TEST_52_0_2_0_0_IN TEST_52_0_2_0
+11 1
+.names TEST_52_0_2_0 TEST_53_0_2_0_0_OUT
+1 1
+.names TEST_53_0_2_0_0_OUT TEST_53_0_2_0_0_IN TEST_53_0_2_0
+11 1
+.names TEST_53_0_2_0 ACT_54_0_2_0_0
+1 1
+.names TEST_52_0_2_0 TEST_53_0_2_0 ELSE_53_2_0
+10 1
+.names TEST_53_0_2_0 ELSE_53_2_0 GO_56_0_0
+00 0
+.names GO_56_0_0 TEST_55_0_2_0_0_OUT
+1 1
+.names TEST_55_0_2_0_0_OUT TEST_55_0_2_0_0_IN TEST_55_0_2_0
+11 1
+.names TEST_55_0_2_0 set THEN_58_2_0
+11 1
+.names THEN_58_2_0 ACT_56_0_2_0_0
+1 1
+.names TEST_55_0_2_0 set ELSE_58_2_0
+10 1
+.names THEN_58_2_0 ELSE_58_2_0 GO_61_0_0
+00 0
+.names GO_61_0_0 TEST_57_0_2_0_0_OUT
+1 1
+.names TEST_57_0_2_0_0_OUT TEST_57_0_2_0_0_IN TEST_57_0_2_0
+11 1
+.names TEST_57_0_2_0 ACT_58_0_2_0_0
+1 1
+.names GO_61_0_0 TEST_57_0_2_0 ELSE_62_2_0
+10 1
+.names TEST_57_0_2_0 ELSE_62_2_0 GO_65_2_0
+00 0
+.names GO_65_2_0 quickAccel THEN_65_2_0
+11 1
+.names THEN_65_2_0 TEST_59_0_2_0_0_OUT
+1 1
+.names TEST_59_0_2_0_0_OUT TEST_59_0_2_0_0_IN TEST_59_0_2_0
+11 1
+.names TEST_59_0_2_0 ACT_60_0_2_0_0
+1 1
+.names THEN_65_2_0 TEST_59_0_2_0 ELSE_66_2_0
+10 1
+.names GO_65_2_0 quickAccel ELSE_65_2_0
+10 1
+.names TEST_59_0_2_0 ELSE_66_2_0 ELSE_65_2_0 GO_68_2_0
+000 0
+.names GO_68_2_0 quickDecel THEN_68_2_0
+11 1
+.names THEN_68_2_0 TEST_61_0_2_0_0_OUT
+1 1
+.names TEST_61_0_2_0_0_OUT TEST_61_0_2_0_0_IN TEST_61_0_2_0
+11 1
+.names TEST_61_0_2_0 ACT_62_0_2_0_0
+1 1
+.names THEN_68_2_0 TEST_61_0_2_0 ELSE_69_2_0
+10 1
+.names GO_68_2_0 quickDecel ELSE_68_2_0
+10 1
+.names TEST_61_0_2_0 ELSE_69_2_0 ELSE_68_2_0 GO_71_2_0
+000 0
+.names GO_71_2_0 TEST_63_0_2_0_0_OUT
+1 1
+.names TEST_63_0_2_0_0_OUT TEST_63_0_2_0_0_IN TEST_63_0_2_0
+11 1
+.names TEST_63_0_2_0 ACT_64_0_2_0_0
+1 1
+.names GO_71_2_0 TEST_63_0_2_0 ELSE_71_2_0
+10 1
+.names TEST_63_0_2_0 ELSE_71_2_0 GO_73_2_0
+00 0
+.names GO_73_2_0 TEST_65_0_2_0_0_OUT
+1 1
+.names TEST_65_0_2_0_0_OUT TEST_65_0_2_0_0_IN TEST_65_0_2_0
+11 1
+.names TEST_65_0_2_0 ACT_66_0_2_0_0
+1 1
+.names GO_73_2_0 TEST_65_0_2_0 ELSE_73_2_0
+10 1
+.names GO_56_0_0 TEST_55_0_2_0 ELSE_57_2_0
+10 1
+.names CONT_49_2_0 TEST_52_0_2_0 ELSE_51_2_0
+10 1
+.names TEST_65_0_2_0 ELSE_73_2_0 ELSE_57_2_0 ELSE_51_2_0 GO_75_2_0
+0000 0
+.names GO_75_2_0 ACT_67_0_2_0_0
+1 1
+.names BOOT_REGISTER_0_0 GO_75_2_0 GO_49_2_0
+00 0
+.names BOOT_REGISTER_0_0 ACT_68_0_3_0_0
+1 1
+.names PAUSE_REG_80_3_0 BOOT_REGISTER_0_0 TO_PRESENT_81_3_0
+10 1
+.names TO_PRESENT_81_3_0 ACT_69_0_3_0_0
+1 1
+.names TO_PRESENT_81_3_0 TEST_70_0_3_0_0_OUT
+1 1
+.names TEST_70_0_3_0_0_OUT TEST_70_0_3_0_0_IN TEST_70_0_3_0
+11 1
+.names BOOT_REGISTER_0_0 ACT_26_0_0_0_0
+1 1
+.names TEST_70_0_3_0 ACT_71_0_3_0_0
+1 1
+.names TO_PRESENT_81_3_0 TEST_70_0_3_0 ELSE_85_3_0
+10 1
+.names TEST_70_0_3_0 ELSE_85_3_0 GO_88_3_0
+00 0
+.names GO_88_3_0 ACT_72_0_3_0_0
+1 1
+.names BOOT_REGISTER_0_0 GO_88_3_0 GO_80_3_0
+00 0
+.names GO_42_1_0 GO_49_2_0 GO_80_3_0 PARALLEL_2_UNION_K1_0_0
+000 0
+.names PAUSE_REG_45_1_0 PAUSE_REG_49_2_0 PAUSE_REG_80_3_0 SELECT_2_0_0
+000 0
+.names SELECT_2_0_0 PAUSE_REG_45_1_0 DEAD_2_B0_0_0
+10 1
+.names DEAD_2_B0_0_0 GO_42_1_0 PARALLEL_2_MIN_K1_B0_0_0
+00 0
+.names SELECT_2_0_0 PAUSE_REG_49_2_0 DEAD_2_B1_0_0
+10 1
+.names DEAD_2_B1_0_0 GO_49_2_0 PARALLEL_2_MIN_K1_B1_0_0
+00 0
+.names SELECT_2_0_0 PAUSE_REG_80_3_0 DEAD_2_B2_0_0
+10 1
+.names DEAD_2_B2_0_0 GO_80_3_0 PARALLEL_2_MIN_K1_B2_0_0
+00 0
+.names PARALLEL_2_UNION_K1_0_0 PARALLEL_2_MIN_K1_B0_0_0 PARALLEL_2_MIN_K1_B1_0_0 PARALLEL_2_MIN_K1_B2_0_0 PARALLEL_2_CONT_K1_0_0
+1111 1
+.names PARALLEL_2_CONT_K1_0_0 ROOT_K1_0_0
+1 1
+.names GO_42_1_0 ROOT_K1_0_0 TO_PRE_S9_0_0
+11 1
+.names TO_PRE_S9_0_0 PRE_ACT9_0_0_0
+1 1
+.names BOOT_REGISTER_0_0 ACT_24_0_0_0_0
+1 1
+.names GO_88_3_0 throttleCmd
+1 1
+.names GO_75_2_0 cruiseSpeed
+1 1
+.names ROOT_K0_0_0
+ 0
+.latch __cruiseController_false_wire BOOT_REGISTER_0_0 1
+.latch GO_42_1_0 PAUSE_REG_45_1_0 0
+.latch GO_49_2_0 PAUSE_REG_49_2_0 0
+.latch GO_80_3_0 PAUSE_REG_80_3_0 0
+.names __cruiseController_false_wire
+
+
+.end
+
