@@ -1,0 +1,196 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Main Module
+module cruiseControl:
+
+input on, off, resume, quickAccel, quickDecel, set;
+input speed: float, accel: float, brake: float;
+
+output throttleCmd: float;
+output cruiseSpeed: float;
+output cruiseState: integer;
+%// 1 - CruiseOff
+%// 2 - CruiseOn
+%// 3 - CruiseStndby
+%// 4 - CruiseDisable
+
+run MainFSM [
+    signal on/on;
+    signal off/off;
+    signal resume/resume;
+    signal speed/speed;
+    signal accel/accel;
+    signal brake/brake;
+    
+    signal cruiseState/cruiseState
+]
+||
+run CruiseSpeedControl [
+    signal quickAccel/sQuickAccel;
+    signal quickDecel/sQuickDecel;
+    signal set/sSet;
+    signal cruiseState/sCruiseState;
+    signal speed/sSpeed;
+    
+    signal cruiseSpeed/sCruiseSpeed
+]
+||
+run ThrottleControl [
+    signal accel/accel;
+    signal speed/speed;
+    signal cruiseSpeed/tcruiseSpeed;
+    signal cruiseState/tcruiseState;
+    
+    signal throttleCmd/throttleCmd
+]
+
+end module
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% MainFSM Module
+module MainFSM:
+
+input on, off, resume;
+input speed: float, accel: float, brake: float;
+
+output cruiseState: integer;
+
+constant PedalsMin = 3.00f : float;
+constant SpeedMin = 30.00f : float;
+constant SpeedMax = 150.00f: float; 
+
+signal brakeGood, accelGood, speedGood in
+
+    %// signal setting
+    loop
+        if (?brake < PedalsMin) then emit brakeGood; end if;
+        if (?accel < PedalsMin) then emit accelGood; end if;
+        if (?speed >= SpeedMin) and (?speed <= SpeedMax) then emit speedGood; end if;
+        pause;
+    end loop;
+
+||
+
+    %// FSM
+    loop
+        %// state 1 - CruiseOff
+        abort
+            sustain cruiseState(1)
+        when on;
+
+        abort 
+            loop
+                %// state 2 - CruiseOn
+                present [speedGood and accelGood and brakeGood] then
+                    abort
+                        sustain cruiseState(2)
+                    when [not brakeGood or not accelGood or not speedGood]
+                end present;
+                
+                %// state 3 - CruiseStndby
+                present [not brakeGood] then
+                    abort
+                        sustain cruiseState(3)
+                    when [resume and brakeGood]
+                end present;
+
+                %// state 4 - CruiseDisable
+                abort %// would be nice to have a guard here, but fails verification
+                    sustain cruiseState(4)
+                when [not brakeGood or (accelGood and speedGood)]
+            end loop;
+        when off;       
+    end loop;
+end signal;
+
+end module
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% CruiseSpeedControl Module
+module CruiseSpeedControl:
+
+input sQuickAccel, sQuickDecel, sSet;
+input sCruiseState: integer;
+input sSpeed: float;
+
+output sCruiseSpeed: float;
+
+constant SpeedMin = 30.00f : float;
+constant SpeedMax = 150.00f: float; 
+constant SpeedInc = 10.00f  : float;
+
+var internalCruiseSpeed:= 0.0f: float in
+loop
+    %// if cruise control is on (not off)
+    if (?sCruiseState <> 1) then
+
+        %// if previous state was "CruiseOff"
+        if (pre(?sCruiseState) = 1) then
+            if (?sSpeed > SpeedMax) then
+                internalCruiseSpeed := SpeedMax;
+            elsif (?sSpeed < SpeedMin) then
+                internalCruiseSpeed := SpeedMin;
+            else
+                internalCruiseSpeed := ?sSpeed;
+            end if;
+        end if;
+
+        %// set button
+        present sSet then
+            if (?sSpeed > SpeedMax) then
+                internalCruiseSpeed := SpeedMax;
+            elsif (?sSpeed < SpeedMin) then
+                internalCruiseSpeed := SpeedMin;
+            else
+                internalCruiseSpeed := ?sSpeed;
+            end if;
+        end present;
+
+        %// quickAccel button
+        present sQuickAccel then
+            if ((internalCruiseSpeed + SpeedInc) <= SpeedMax) then
+                internalCruiseSpeed := internalCruiseSpeed + SpeedInc;
+            else
+                internalCruiseSpeed := SpeedMax;
+            end if;
+        end present;
+
+        %// quickDecel button
+        present sQuickDecel then
+            if ((internalCruiseSpeed - SpeedInc) >= SpeedMin) then
+                internalCruiseSpeed := internalCruiseSpeed - SpeedInc;
+            else
+                internalCruiseSpeed := SpeedMin;
+            end if;
+        end present;
+    end if;
+
+    emit sCruiseSpeed(internalCruiseSpeed);
+    pause;
+end loop
+end var;
+end module
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ThrottleControl Module
+module ThrottleControl:
+
+input accel: float, speed: float, tcruiseSpeed: float;
+input tcruiseState: integer;
+
+output throttleCmd: float;
+
+function regulateThrottle(integer, float, float): float;
+
+loop
+    %// normal throttle in any state except "CruiseOn"
+    if (?tcruiseState <> 2) then
+        emit throttleCmd(?accel);
+
+    %// regulate throttle only in "CruiseOn" state
+    elsif (?tcruiseState = 2) then
+        emit throttleCmd(regulateThrottle(pre(?tcruiseState), ?tcruiseSpeed, ?speed));
+    end if;
+    pause;
+end loop;
+end module
+
