@@ -171,7 +171,7 @@ loop
 	pause;
 
 	%// if on, check for disable
-	if (?sCruiseState = 2 or ?sCruiseState = 3) then
+	%if (?sCruiseState = 2 or ?sCruiseState = 3) then
 
 		%// first time the cruise mode has been turned on, previous state was off and current state is on
 		if((pre(?sCruiseState) = 1) and (?sCruiseState = 2)) then
@@ -180,8 +180,8 @@ loop
 			internalCruiseSpeed:= ?sSpeed;
 		end if;
 
-		% if not disable, then do something
-		if not (?sCruiseState = 4)  then
+		% if not off, then do something
+		if not (?sCruiseState = 1)  then
 
 			% if this is the first time On is pressed or if set is pressed
 			present sSet then
@@ -224,7 +224,7 @@ loop
 
 
 		end if;
-	end if;
+	%end if;
 	emit sCruiseSpeed(internalCruiseSpeed);
 end loop
 end var;
