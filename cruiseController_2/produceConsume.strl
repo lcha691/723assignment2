@@ -27,31 +27,25 @@ constant SpeedInc= 10.00f  : float;
 %// MAIN FSM LOGIC
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    signal brakeOverLimit, brakeGood, accelOverLimit, accelGood, speedOutOfBounds, speedGood in
+    signal brakeGood, accelGood, speedGood in
 
 %// signal setting
     loop
-        if (?brake >= PedalsMin) then
-            emit brakeOverLimit;
-        else
+        if (?brake < PedalsMin) then
             emit brakeGood;
         end if;
         pause;
     end loop
 ||
     loop
-        if (?accel >= PedalsMin) then
-            emit accelOverLimit;
-        else
+        if (?accel < PedalsMin) then
             emit accelGood;
         end if;
         pause;
     end loop;
 ||
     loop
-        if (?speed < SpeedMin) or (?speed > SpeedMax) then
-            emit speedOutOfBounds;
-        else
+        if (?speed >= SpeedMin) and (?speed <= SpeedMax) then
             emit speedGood;
         end if;
         pause;
@@ -71,35 +65,35 @@ constant SpeedInc= 10.00f  : float;
 
                 %// state 2 - CruiseOn
                 present [speedGood and accelGood and brakeGood] then
-		        abort
-		            sustain cruiseState(2)
-		        when 
-		        	case brakeOverLimit %// to STNDBY 
-		        	case [accelOverLimit or speedOutOfBounds] %// to DISABLE
-		        end abort;
-	        end present;
+                    abort
+                        sustain cruiseState(2)
+                    when 
+                        case brakeOverLimit %// to STNDBY 
+                        case [accelOverLimit or speedOutOfBounds] %// to DISABLE
+                    end abort;
+                end present;
                 %// -----------------------
 
                 %// state 3 - CruiseStndby
-                present brakeOverLimit then
-		    abort
-		        sustain cruiseState(3)
-		    when
-		    	case [resume and accelGood and speedGood] %// to On
-		    	case [resume and (accelOverLimit or speedOutOfBounds)] %// to DISABLE
-		    end abort;
+                present [not brakeGood] then
+                    abort
+                        sustain cruiseState(3)
+                    when
+                        case [resume and accelGood and speedGood] %// to On
+                        case [resume and (accelOverLimit or speedOutOfBounds)] %// to DISABLE
+                    end abort;
                 end present;
                 %// -----------------------
 
                 %// state 4 - CruiseDisable
-                present [speedOutOfBounds or accelOverLimit] then
-		        abort
-		            sustain cruiseState(4)
-		        when 
-		        	case brakeOverLimit %// to STNDBY
-		            	case [accelGood and speedGood] %// to ON
-			 end abort;
-		end present;
+                present [not speedGood or not accelGood] then
+                    abort
+                        sustain cruiseState(4)
+                    when 
+                        case brakeOverLimit %// to STNDBY
+                        case [accelGood and speedGood] %// to ON
+                    end abort;
+                end present;
                 %// -----------------------
 
             end loop;
@@ -123,7 +117,7 @@ constant SpeedInc= 10.00f  : float;
 
         elsif (?cruiseState = 2) then
             %// while cruise controller is on, we regulate the throttle
-            %// param 1 = isGoingOn, bool to indicate the previous state was not 2 and now it is 2
+            %// param 1 = state, int representing the previous state of the cruise controller
             %// param 2 = cruiseSpeed, the speed we want to maintain
             %// param 3 = speed, the current speed of the vehicle
             
@@ -145,7 +139,7 @@ constant SpeedInc= 10.00f  : float;
     loop
     
         %// check if cruise control activated for first time
-        if (pre(?cruiseState) = 1 and ?cruiseState = 2) then
+        if (pre(?cruiseState) = 1 and ?cruiseState <> 1) then
             %// set speed to current speed
             %// if speed is too high, set to max
             %// if speed is too low, set to min
@@ -160,6 +154,7 @@ constant SpeedInc= 10.00f  : float;
 
         %// if on, check for button presses
         if (?cruiseState <> 1) then
+
             present set then
                 %// if too high, set to max
                 %// if too low, set to min
