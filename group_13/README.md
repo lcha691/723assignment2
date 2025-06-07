@@ -124,3 +124,5 @@ Must be on a Linux system!\
 To run through the terminal, the code must be located locally, and the following commands must be run from the appropriate project directory:\
 `make CruiseControl.xes`\
 `./CruiseControl.xes`
+
+**_Credit to the original Authors of this README: Harrison Warahi, Cassandra D'Souza_**
