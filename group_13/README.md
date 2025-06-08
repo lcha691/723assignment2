@@ -135,6 +135,13 @@ The project must be stored locally\
 
 ### How to run the model
 
-To run through the terminal, the code must be located locally, and the following commands must be run from the appropriate project directory:\
-`make produceConsume.xes`\
-`./produceConsume.xes`
+1. To run through the terminal, the code must be located locally, and the following commands must be run from the appropriate project directory:\
+   `make produceConsume.xes`\
+   `./produceConsume.xes`
+
+2. Once the console opens:
+
+- For initialisation of valued signals, it must have a numbered value, it cannot be left as -\*- otherwise there it will not run properly
+- Pressing an input will turn it to red to show that it it will be active for the next tick
+- Once the desired signals have been set on, press the tick button to progress through one increment of time which will update the outputs
+- Inputs will have to be turned on again to be used for the following tick.
