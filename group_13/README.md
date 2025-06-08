@@ -7,31 +7,39 @@ _This project was created for an assignment at The University of Auckland_
 
 ## Project Overview
 
-This Project is built in Esterel, a synchronous programming language.\
-The Cruise Controller is split into three submodules, a state controller, a cruise speed controller, and a throttle controller. These are executed parallel in one parent module.
+This project implements a simplified cruise control system using the Esterel synchronous programming language.\
+It models a reactive system for regulating vehicle speed and is organized into three concurrent modules: a cruise state manager,\
+a cruise speed handler, and a throttle controller.
 
-## Cruise State Controller
+## 1. Cruise State Controller
 
 ### Description
 
-The Cruise State Controller manages what state the controller should be in depending on inputs and thresholds below. It will move between four states; Off (1), On (2), Standby (3), and Disabled (4). Depending on which state the cruise controller is in, the outputs of the Throttle Controller and Speed Controller will change how they retrieve their values.
+The Cruise State Controller manages what state the controller should be in depending on inputs and thresholds below. It will move between four states, depending on which state the cruise controller is in, the outputs of the Throttle Controller and Speed Controller will change how they retrieve their values.
 
 ### Inputs
 
-| Type  | Name   | Description                     |
-| ----- | ------ | ------------------------------- |
-| Pure  | on     | Enable the cruise control       |
-| Pure  | off    | Disable the cruise control      |
-| Pure  | resume | Resume the cruise control       |
-| Float | brake  | Senses if the brake is pressed  |
-| Float | speed  | Speed of the car                |
-| Float | accel  | Senses if the accelerator is on |
+| Type  | Signal | Description                      |
+| ----- | ------ | -------------------------------- |
+| Pure  | on     | Activates cruise control         |
+| Pure  | off    | Deactivates cruise control       |
+| Pure  | resume | Reactivates previous cruise mode |
+| Float | brake  | Brake pedal sensor               |
+| Float | speed  | Current vehicle speed            |
+| Float | accel  | Accelerator pedal sensor         |
 
 ### Outputs
 
-| Type | Name        | Description          |
-| ---- | ----------- | -------------------- |
-| Int  | cruiseState | Cruise Control State |
+| Type    | Name        | Description          |
+| ------- | ----------- | -------------------- |
+| Integer | cruiseState | Cruise Control State |
+
+### Cruise States
+
+- `1`: Off
+- `2`: On
+- `3`: Standby
+- `4`: Disabled
 
 ### Thresholds
 
@@ -48,7 +56,7 @@ The Cruise State Controller manages what state the controller should be in depen
 
 <br/>
 
-## Cruise Speed Controller
+## 2. Cruise Speed Controller
 
 ### Description
 
@@ -66,7 +74,7 @@ Cruise Speed Control manages the "Cruise Speed" of the car, based on external in
 
 | Type  | Name         | Description              |
 | ----- | ------------ | ------------------------ |
-| Pure  | sSet         | Button Sets Cruise Speed |
+| Pure  | sSet         | Button sets Cruise Speed |
 | Pure  | sQuickAccel  | Incrememnts Cruise Speed |
 | Pure  | sQuickDecel  | Decrements Cruise Speed  |
 | Float | sSpeed       | Current Car Speed        |
@@ -90,7 +98,7 @@ Cruise Speed Control manages the "Cruise Speed" of the car, based on external in
 
 <br/>
 
-## Throttle Controller
+## 3. Throttle Controller
 
 ### Description
 
@@ -118,11 +126,15 @@ The Throttle Controller physically operates the speed of the car, either directl
 | Cruise Control is Off | `Throttle = Accelerator Sensor`       |
 | Cruise Control is On  | `Throttle Command = Regulated Output` |
 
-## How To Run Code:
+## Running the model:
+
+### Requirements
 
 Must be on a Linux system!\
-To run through the terminal, the code must be located locally, and the following commands must be run from the appropriate project directory:\
-`make CruiseControl.xes`\
-`./CruiseControl.xes`
+The project must be stored locally\
 
-**_Credit to the original Authors of this README: Harrison Warahi, Cassandra D'Souza_**
+### How to run the model
+
+To run through the terminal, the code must be located locally, and the following commands must be run from the appropriate project directory:\
+`make produceConsume.xes`\
+`./produceConsume.xes`
